@@ -325,7 +325,7 @@ const INCOME_OPTIONS = [
   { value: "Above ₹5 Lakhs", en: "Above ₹5 Lakhs", ta: "₹5 லட்சத்திற்கு மேல்" },
 ];
 
-const initialForm = {
+const createEmptyForm = () => ({
   fullName: "",
   dob: "",
   gender: "",
@@ -343,9 +343,9 @@ const initialForm = {
   schooling: "",
   vehicleOwnership: "",
   electricityUnits: "",
-};
+});
 
-const DIGILOCKER_SAMPLE = {
+const createDigiLockerSample = () => ({
   fullName: "Karthika R",
   dob: "2003-06-14",
   gender: "Female",
@@ -363,7 +363,7 @@ const DIGILOCKER_SAMPLE = {
   schooling: "12th Pass",
   vehicleOwnership: "No",
   electricityUnits: "2400",
-};
+});
 
 const STEP_REQUIRED_FIELDS = [
   ["fullName", "dob", "gender", "locationType"],
@@ -834,11 +834,11 @@ function Step1({ t, lang, data, set }) {
     <div className="step-fields">
       <div className="field-block">
         <label>{t.fields.fullName}</label>
-        <input value={data.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder={t.placeholders.fullName} />
+        <input autoComplete="off" value={data.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder={t.placeholders.fullName} />
       </div>
       <div className="field-block">
         <label>{t.fields.dob}</label>
-        <input type="date" value={data.dob} onChange={(e) => set("dob", e.target.value)} />
+        <input autoComplete="off" type="date" value={data.dob} onChange={(e) => set("dob", e.target.value)} />
       </div>
       <div className="field-block">
         <label>{t.fields.gender}</label>
@@ -942,11 +942,11 @@ function Step4({ t, lang, data, set }) {
       <div className="dual-fields">
         <div className="field-block">
           <label>{t.fields.fatherOcc}</label>
-          <input value={data.fatherOcc} onChange={(e) => set("fatherOcc", e.target.value)} placeholder={t.placeholders.fatherOcc} />
+          <input autoComplete="off" value={data.fatherOcc} onChange={(e) => set("fatherOcc", e.target.value)} placeholder={t.placeholders.fatherOcc} />
         </div>
         <div className="field-block">
           <label>{t.fields.motherOcc}</label>
-          <input value={data.motherOcc} onChange={(e) => set("motherOcc", e.target.value)} placeholder={t.placeholders.motherOcc} />
+          <input autoComplete="off" value={data.motherOcc} onChange={(e) => set("motherOcc", e.target.value)} placeholder={t.placeholders.motherOcc} />
         </div>
       </div>
       <div className="field-block">
@@ -988,6 +988,11 @@ function GuidedForm({ t, lang, data, setData, onSubmit }) {
   const complete = isStepComplete(step, data);
   const isLast = step === 3;
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onSubmit();
+  };
+
   return (
     <section className="form-section">
       <div className="page-shell">
@@ -1001,21 +1006,23 @@ function GuidedForm({ t, lang, data, setData, onSubmit }) {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="form-panel"
           >
-            <StepComp t={t} lang={lang} data={data} set={set} />
-            <div className="form-actions">
-              <button type="button" className="button button-outline" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0}>
-                <ArrowLeft size={16} /> {t.back}
-              </button>
-              {!isLast ? (
-                <button type="button" className="button button-primary" onClick={() => setStep((current) => current + 1)} disabled={!complete}>
-                  {t.next} <ArrowRight size={16} />
+            <form autoComplete="off" onSubmit={handleSubmit}>
+              <StepComp t={t} lang={lang} data={data} set={set} />
+              <div className="form-actions">
+                <button type="button" className="button button-outline" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0}>
+                  <ArrowLeft size={16} /> {t.back}
                 </button>
-              ) : (
-                <button type="button" className="button button-primary" onClick={onSubmit} disabled={!complete}>
-                  <Sparkles size={16} /> {t.checkForMe}
-                </button>
-              )}
-            </div>
+                {!isLast ? (
+                  <button type="button" className="button button-primary" onClick={() => setStep((current) => current + 1)} disabled={!complete}>
+                    {t.next} <ArrowRight size={16} />
+                  </button>
+                ) : (
+                  <button type="submit" className="button button-primary" disabled={!complete}>
+                    <Sparkles size={16} /> {t.checkForMe}
+                  </button>
+                )}
+              </div>
+            </form>
           </motion.div>
         </div>
       </div>
@@ -1520,7 +1527,8 @@ const BACKEND_BLUEPRINT = {
 
 export default function NalaThittam() {
   const [stage, setStage] = useState("landing");
-  const [formData, setFormData] = useState(initialForm);
+  const [formData, setFormData] = useState(createEmptyForm);
+  const [submittedData, setSubmittedData] = useState(createEmptyForm);
   const [isTamil, setIsTamil] = useState(false);
   const timerRef = useRef(null);
 
@@ -1555,26 +1563,33 @@ export default function NalaThittam() {
   };
 
   const handleCheck = () => {
+    const snapshot = { ...formData };
+    setSubmittedData(snapshot);
+    setFormData(createEmptyForm());
     setStage("loading");
     timerRef.current = setTimeout(() => setStage("results"), 1800);
   };
 
   const handleRestart = () => {
-    setFormData(initialForm);
+    setSubmittedData(createEmptyForm());
+    setFormData(createEmptyForm());
     setStage("form");
   };
 
   const handleDigiLocker = () => {
-    setFormData(DIGILOCKER_SAMPLE);
+    setSubmittedData(createEmptyForm());
+    setFormData(createDigiLockerSample());
     setStage("form");
   };
 
   const handleGoogle = () => {
-    setFormData(DIGILOCKER_SAMPLE);
+    setSubmittedData(createEmptyForm());
+    setFormData(createDigiLockerSample());
     setStage("form");
   };
 
   const handleContinue = () => {
+    setSubmittedData(createEmptyForm());
     setStage("form");
   };
 
@@ -1611,7 +1626,7 @@ export default function NalaThittam() {
 
         {stage === "results" && (
           <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-            <ResultsDashboard t={t} data={formData} onRestart={handleRestart} />
+            <ResultsDashboard t={t} data={submittedData} onRestart={handleRestart} />
           </motion.div>
         )}
       </AnimatePresence>
